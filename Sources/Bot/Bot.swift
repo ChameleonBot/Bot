@@ -4,6 +4,7 @@
 @_exported import RTMAPI
 @_exported import Models
 @_exported import Common
+import Foundation
 
 /// An extensible Slack bot user than can provide custom functionality
 public class SlackBot {
@@ -74,16 +75,17 @@ public class SlackBot {
     //MARK: - Public Functions
     /// Start the bot
     public func start() {
-        _ = inBackground(
-            try: {
-                let maximumAttempts: Int = try self.config.value(for: ReconnectionAttempts.self)
-                self.state.transition(withEvent: .connect(maximumAttempts: maximumAttempts))
-            },
-            catch: { error in
-                self.state.transition(withEvent: .disconnect(reconnect: true, error: error))
-            }
-        )
-        self.server.start()
+        do {
+            let maximumAttempts: Int = try self.config.value(for: ReconnectionAttempts.self)
+            self.state.transition(withEvent: .connect(maximumAttempts: maximumAttempts))
+            
+        } catch let error {
+            self.state.transition(withEvent: .disconnect(reconnect: true, error: error))
+        }
+        
+        self.server.start(mode: .newThread)
+        
+        keepAlive()
     }
 }
 
@@ -230,7 +232,7 @@ extension SlackBot {
         return nil //empty 200
     }
     private func slashCommandHandler(url: URL, headers: [String: String], json: [String: Any]?) throws -> HTTPServerResponse? {
-        guard let json = json else { return nil }
+        guard self.state.state.ready, let json = json else { return nil }
         
         let builder = SlackModelBuilder.make(models: self.currentSlackModelData())
         let slashCommand = try SlashCommand.makeModel(with: builder(json))

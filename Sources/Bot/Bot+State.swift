@@ -100,7 +100,7 @@ extension BotState {
     /**
      Defines whether all requirements for the bot to be considered ready have completed
      
-     - seealso: For more information on the requirements see: `State.Connected(state:)`
+     - seealso: For more information on the requirements see: `BotState.connected`
      */
     var ready: Bool {
         switch self {
