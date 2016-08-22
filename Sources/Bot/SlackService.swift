@@ -57,10 +57,10 @@ public protocol SlackRTMEventService: SlackService {
      Called for every supported `RTMAPI` event
      
      - parameter slackBot: The `SlackBot` instance
-     - parameter event:    The `RTMAPIEvent` with the event details
      - parameter webApi:   The current `WebAPI` that can be used to interact with Slack
+     - parameter event:    The `SlackRTMEventDispatcher` that can be used to react to `RTMAPIEvent`s
      */
-    func event(slackBot: SlackBot, event: RTMAPIEvent, webApi: WebAPI) throws
+    func configureEvents(slackBot: SlackBot, webApi: WebAPI, dispatcher: SlackRTMEventDispatcher)
 }
 
 /// A slash command registered by a `SlackSlashCommandService`

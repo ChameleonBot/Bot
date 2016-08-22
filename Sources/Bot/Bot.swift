@@ -70,6 +70,7 @@ public class SlackBot {
         
         self.bindToRTM()
         self.configureServer()
+        self.configureEventServices()
     }
     
     //MARK: - Public Functions
@@ -157,12 +158,8 @@ extension SlackBot {
         self.rtmAPI.onError = { [weak self] error in
             self?.notifyError(error)
         }
-        self.rtmAPI.onEvent = { [weak self] event in
-            if case .hello = event {
-                self?.state.transition(withEvent: .connectionState(state: .Hello))
-            }
-            
-            self?.notifyEvent(event)
+        self.rtmAPI.onEvent(HelloEvent.self) { [weak self] in
+            self?.state.transition(withEvent: .connectionState(state: .Hello))
         }
     }
     private func connectToRTM() {
@@ -244,6 +241,14 @@ extension SlackBot {
 
 //MARK: - Event Propogation
 extension SlackBot {
+    private func configureEventServices() {
+        let services = self.services.flatMap { $0 as? SlackRTMEventService }
+        
+        for service in services {
+            service.configureEvents(slackBot: self, webApi: self.webAPI, dispatcher: self.rtmAPI)
+        }
+    }
+    
     private func notifyConnected() {
         let services = self.services.flatMap { $0 as? SlackConnectionService }
         
@@ -282,20 +287,6 @@ extension SlackBot {
         
         for service in services {
             service.error(slackBot: self, error: error)
-        }
-    }
-    private func notifyEvent(_ event: RTMAPIEvent) {
-        guard self.state.state.ready else { return }
-        
-        let services = self.services.flatMap { $0 as? SlackRTMEventService }
-        
-        do {
-            for service in services {
-                try service.event(slackBot: self, event: event, webApi: self.webAPI)
-            }
-            
-        } catch let error {
-            self.notifyError(error)
         }
     }
     private func notifySlashCommand(_ command: SlashCommand) {
