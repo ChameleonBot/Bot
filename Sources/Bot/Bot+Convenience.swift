@@ -16,7 +16,7 @@ public extension SlackBot {
         storage: Data.Type,
         services: [SlackService]) throws {
         
-        let server = HTTPServerProvider(server: Droplet())
+        let server = HTTPServerProvider()
         let http = HTTPProvider()
         let webAPI = WebAPI(http: http)
         let rtmAPI = RTMAPI(websocket: WebSocketProvider())

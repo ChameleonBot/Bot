@@ -76,6 +76,8 @@ public class SlackBot {
     //MARK: - Public Functions
     /// Start the bot
     public func start() {
+        self.server.start(mode: .newThread)
+        
         do {
             let maximumAttempts: Int = try self.config.value(for: ReconnectionAttempts.self)
             self.state.transition(withEvent: .connect(maximumAttempts: maximumAttempts))
@@ -83,10 +85,6 @@ public class SlackBot {
         } catch let error {
             self.state.transition(withEvent: .disconnect(reconnect: true, error: error))
         }
-        
-        self.server.start(mode: .newThread)
-        
-        keepAlive()
     }
 }
 
