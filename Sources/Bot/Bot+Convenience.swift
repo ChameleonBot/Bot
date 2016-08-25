@@ -85,8 +85,8 @@ extension MemoryStorage: DependencyBuildable {
         return MemoryStorage()
     }
 }
-extension RedisStorage: DependencyBuildable {
-    public static func make(config: Config, server: HTTPServer, http: HTTP, rtmAPI: RTMAPI, webAPI: WebAPI) throws -> RedisStorage {
-        return try RedisStorage(url: try config.value(for: StorageURL.self))
-    }
-}
+//extension RedisStorage: DependencyBuildable {
+//    public static func make(config: Config, server: HTTPServer, http: HTTP, rtmAPI: RTMAPI, webAPI: WebAPI) throws -> RedisStorage {
+//        return try RedisStorage(url: try config.value(for: StorageURL.self))
+//    }
+//}
