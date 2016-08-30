@@ -31,8 +31,6 @@ Chameleon *is* functional however there is still a lot to do before it is *compl
 * The Web and Real time messaging APIs can do _a lot_ - 
 I have built support for the core/most common features but they are incomplete. 
 I will add more over time until they are complete.
-* Once the project reaches a v1 release the individual frameworks will be broken out. 
-They all live here for now for ease of development, however, separation should be considered when contributing.
 
 <br />
 
