@@ -18,7 +18,7 @@ It consists of several frameworks, the core of which are:
 * [x] **Typed**: You always get to work with _full_ typed Slack model data.
 
 # Installation
-Refer to the [Installation Guide]().
+Refer to the [Installation Guide](https://github.com/ChameleonBot/Bot/blob/master/INSTALLATION.md).
 
 # APIs
 _Coming soon_
