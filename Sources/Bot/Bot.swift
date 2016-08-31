@@ -156,7 +156,7 @@ extension SlackBot {
         self.rtmAPI.onError = { [weak self] error in
             self?.notifyError(error)
         }
-        self.rtmAPI.onEvent(HelloEvent.self) { [weak self] in
+        self.rtmAPI.onEvent(hello.self) { [weak self] in
             self?.state.transition(withEvent: .connectionState(state: .Hello))
         }
     }
