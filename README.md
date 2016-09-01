@@ -11,7 +11,7 @@ It consists of several frameworks, the core of which are:
 * **Models**: Exposes Slack model data. Slack's APIs only provide object ids in their responses, however the model layer is able to convert those into _full_ model objects. 
 * **WebAPI**: Allows interaction with Slack's Web API.
 * **RTMAPI**: Allows interaction with Slack's Real-time messaging API.
-* **Bot**: Utilises  Provides an extensible Slack bot user.
+* **Bot**: Utilises each of the frameworks to provide an extensible Slack bot user.
 
 ## Features
 * [x] **Extensible**: `SlackService`'s can be added to provide any behaviour you need.
