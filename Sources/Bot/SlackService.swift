@@ -63,26 +63,12 @@ public protocol SlackRTMEventService: SlackService {
     func configureEvents(slackBot: SlackBot, webApi: WebAPI, dispatcher: SlackRTMEventDispatcher)
 }
 
-/// A slash command registered by a `SlackSlashCommandService`
-public struct SlashCommandRegistration {
-    /// The slash command (Be sure to include the leading /)
-    let command: String
-    
-    /// The token given to you by Slack to validate this command
-    let token: String
-    
-    public init(command: String, token: String) {
-        self.command = command
-        self.token = token
-    }
-}
-
 /// An abstraction that represents a slash command handler
 public protocol SlackSlashCommandService: SlackService {
     /**
      The commands supported by this `SlackSlashCommandService` instance
     */
-    var slashCommands: [SlashCommandRegistration] { get }
+    var slashCommands: [String] { get }
     
     /**
      Called when one of the registered slash commands is triggered

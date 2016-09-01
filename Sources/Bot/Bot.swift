@@ -290,22 +290,24 @@ extension SlackBot {
     private func notifySlashCommand(_ command: SlashCommand) {
         guard self.state.state.ready else { return }
         
-        let services = self.services.flatMap { $0 as? SlackSlashCommandService }
-        
-        for service in services {
-            let match = !service
-                .slashCommands
-                .filter { $0.command == command.command && $0.token == command.token }
-                .isEmpty
+        do {
+            let verificationToken: String = try self.config.value(for: VerificationToken.self)
             
-            if (match) {
-                do {
+            let services = self.services.flatMap { $0 as? SlackSlashCommandService }
+            
+            for service in services {
+                let noMatch = service
+                    .slashCommands
+                    .filter { $0.withPrefix("/") == command.command && verificationToken == command.token }
+                    .isEmpty
+                
+                if (!noMatch) {
                     try service.slashCommand(slackBot: self, command: command, webApi: self.webAPI)
-                    
-                } catch let error {
-                    self.notifyError(error)
                 }
             }
+            
+        } catch let error {
+            self.notifyError(error)
         }
     }
 }
