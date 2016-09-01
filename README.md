@@ -26,7 +26,7 @@ Refer to the [API Guide](https://github.com/ChameleonBot/Bot/blob/master/API.md)
 # Contributing
 Want to contribute, check out the [Contribution Guide](https://github.com/ChameleonBot/Bot/blob/master/CONTRIBUTING.md).
 
-## ⚠️ Work in Progress
+# ⚠️ Work in Progress
 This is a work in progress so expect improvements as well as breaking changes!
 
 Chameleon is *functional* however there is still a lot to do before it is *complete*
@@ -35,9 +35,7 @@ Chameleon is *functional* however there is still a lot to do before it is *compl
 I have built support for the core/most common features but they are incomplete. 
 I will add more over time until they are complete.
 
-<br />
-
-#Acknowledgement
+# Acknowledgement
 This was my first dive into 'Server Side Swift'; 
 95% of this code was done over a total of a few days but getting working in the terminal 
 and then deployed to Heroku took far longer... This project would likely have ended up as 
