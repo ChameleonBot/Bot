@@ -58,6 +58,7 @@ func configureEvents(slackBot: SlackBot, webApi: WebAPI, dispatcher: SlackRTMEve
 The `data` parameter passed along will contain the data specific to each event.
 
 The following events are currently supported:
+
 | Event                |
 |----------------------|
 | error                |
