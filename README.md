@@ -21,7 +21,7 @@ It consists of several frameworks, the core of which are:
 Refer to the [Installation Guide](https://github.com/ChameleonBot/Bot/blob/master/INSTALLATION.md).
 
 # APIs
-_Coming soon_
+Refer to the [API Guide](https://github.com/ChameleonBot/Bot/blob/master/API.md).
 
 # Contributing
 Want to contribute, check out the [Contribution Guide](https://github.com/ChameleonBot/Bot/blob/master/CONTRIBUTING.md).
