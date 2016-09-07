@@ -47,6 +47,7 @@ public extension SlackBot {
             config: config,
             authenticator: authenticatorInstance,
             storage: storageInstance,
+            http: http,
             webAPI: webAPI,
             rtmAPI: rtmAPI,
             server: server,

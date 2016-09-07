@@ -30,6 +30,7 @@ public class SlackBot {
     
     //MARK: - Public Properties
     public private(set) var storage: Storage
+    public private(set) var http: HTTP
     
     //MARK: - Lifecycle
     /**
@@ -38,6 +39,7 @@ public class SlackBot {
      - parameter config:        The `Config` with the configuration for this instance
      - parameter authenticator: The `SlackAuthenticator` used to obtain a token for the bot to use
      - parameter storage:       The `Storage` implementation used for simple key/value storage
+     - parameter http:          The `HTTP` available to `SlackService`s for making http requests
      - parameter webAPI:        The `WebAPI` used for interaction with the Slack WebAPI
      - parameter rtmAPI:        The `RTMAPI` used for interaction with the Slack Real-time messaging api
      - parameter server:        The `HTTPServer` used to handle Web based interactions
@@ -49,6 +51,7 @@ public class SlackBot {
         config: Config,
         authenticator: SlackAuthenticator,
         storage: Storage,
+        http: HTTP,
         webAPI: WebAPI,
         rtmAPI: RTMAPI,
         server: HTTPServer,
@@ -56,6 +59,7 @@ public class SlackBot {
         
         self.config = config
         self.authenticator = authenticator
+        self.http = http
         self.server = server
         self.webAPI = webAPI
         self.rtmAPI = rtmAPI
