@@ -120,7 +120,7 @@ extension OAuthAuthentication {
                 let request = HTTPRequest(method: .get, url: accessUrl)
                 let (_, json) = try self.http.perform(with: request)
                 
-                let token: String = try json.keyPathValue("bot.bot_access_token")
+                let token: String = try json.value(at: ["bot", "bot_access_token"])
                 self.token = token
                 self.success?(token: token)
             },
