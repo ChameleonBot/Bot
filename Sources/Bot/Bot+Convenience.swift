@@ -12,6 +12,7 @@ public extension SlackBot {
         Data: Storage & DependencyBuildable
         >(
         configDataSource: ConfigDataSource,
+        configItems: [ConfigItem.Type] = [],
         authenticator: Auth.Type,
         storage: Data.Type,
         services: [SlackService]) throws {
@@ -22,7 +23,7 @@ public extension SlackBot {
         let rtmAPI = RTMAPI(websocket: WebSocketProvider())
         
         let config = try Config(
-            supportedItems: AllConfigItems(including: authenticator.configItems),
+            supportedItems: AllConfigItems(including: configItems + authenticator.configItems),
             source: configDataSource
         )
         
