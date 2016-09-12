@@ -9,24 +9,24 @@ import Foundation
 /// An extensible Slack bot user than can provide custom functionality
 public class SlackBot {
     //MARK: - Private Properties
-    private let config: Config
-    private let server: HTTPServer
-    private let state: BotStateMachine
-    private let authenticator: SlackAuthenticator
-    private var services: [SlackService] = [] //TODO: include default service that updates the bots Internal Data
+    fileprivate let config: Config
+    fileprivate let server: HTTPServer
+    fileprivate let state: BotStateMachine
+    fileprivate let authenticator: SlackAuthenticator
+    fileprivate var services: [SlackService] = [] //TODO: include default service that updates the bots Internal Data
     
     //MARK: - Internal Dependencies
     internal let webAPI: WebAPI
     internal let rtmAPI: RTMAPI
     
     //MARK: - Internal Data
-    internal private(set) var botUser: BotUser?
-    internal private(set) var team: Team?
-    internal private(set) var users: [User] = []
-    internal private(set) var channels: [Channel] = []
-    internal private(set) var groups: [Group] = []
-    internal private(set) var ims: [IM] = []
-    //internal private(set) var mpims: [MPIM] = []
+    internal fileprivate(set) var botUser: BotUser?
+    internal fileprivate(set) var team: Team?
+    internal fileprivate(set) var users: [User] = []
+    internal fileprivate(set) var channels: [Channel] = []
+    internal fileprivate(set) var groups: [Group] = []
+    internal fileprivate(set) var ims: [IM] = []
+    //internal fileprivate(set) var mpims: [MPIM] = []
     
     //MARK: - Public Properties
     public private(set) var storage: Storage
@@ -89,12 +89,19 @@ public class SlackBot {
         } catch let error {
             self.state.transition(withEvent: .disconnect(reconnect: true, error: error))
         }
+        
+        keepAlive {
+            switch self.state.state {
+            case .disconnected: return true
+            default: return false
+            }
+        }
     }
 }
 
 //MARK: - State Transitions
-extension SlackBot {
-    private func botStateTransition(oldState: BotState?, newState: BotState) {
+fileprivate extension SlackBot {
+    func botStateTransition(oldState: BotState?, newState: BotState) {
         print("STATE: \(newState)")
         
         switch newState {
@@ -136,8 +143,8 @@ extension SlackBot {
 }
 
 //MARK: - Authentication
-extension SlackBot {
-    private func obtainTokenForWebAPI(complete: () -> Void) {
+fileprivate extension SlackBot {
+    func obtainTokenForWebAPI(complete: @escaping () -> Void) {
         self.authenticator.authenticate(
             success: { [weak self] token in
                 self?.webAPI.token = token
@@ -152,8 +159,8 @@ extension SlackBot {
 }
 
 //MARK: - RTMAPI
-extension SlackBot {
-    private func bindToRTM() {
+fileprivate extension SlackBot {
+    func bindToRTM() {
         self.rtmAPI.onDisconnected = { [weak self] error in
             self?.state.transition(withEvent: .disconnect(reconnect: true, error: error))
         }
@@ -164,7 +171,7 @@ extension SlackBot {
             self?.state.transition(withEvent: .connectionState(state: .Hello))
         }
     }
-    private func connectToRTM() {
+    func connectToRTM() {
         do {
             let options: [RTMStartOption] = try self.config.value(for: RTMStartOptions.self)
             let rtmStart = RTMStart(options: options) { [weak self] serializedData in
@@ -197,8 +204,8 @@ extension SlackBot {
 }
 
 //MARK: - HTTPServer
-extension SlackBot {
-    private enum Endpoint: String {
+fileprivate extension SlackBot {
+    enum Endpoint: String {
         case status
         case slashCommand
 //        case interactiveButtons
@@ -219,7 +226,7 @@ extension SlackBot {
         }
     }
     
-    private func configureServer() {
+    func configureServer() {
         for endpoint in Endpoint.all {
             self.server.respond(
                 to: endpoint.method, at: [endpoint.rawValue],
@@ -227,10 +234,10 @@ extension SlackBot {
             )
         }
     }
-    private func statusHandler(url: URL, headers: [String: String], json: [String: Any]?) throws -> HTTPServerResponse? {
+    func statusHandler(url: URL, headers: [String: String], json: [String: Any]?) throws -> HTTPServerResponse? {
         return nil //empty 200
     }
-    private func slashCommandHandler(url: URL, headers: [String: String], json: [String: Any]?) throws -> HTTPServerResponse? {
+    func slashCommandHandler(url: URL, headers: [String: String], json: [String: Any]?) throws -> HTTPServerResponse? {
         guard self.state.state.ready, let json = json else { return nil }
         
         let builder = SlackModelBuilder.make(models: self.currentSlackModelData())
@@ -242,8 +249,8 @@ extension SlackBot {
 }
 
 //MARK: - Event Propogation
-extension SlackBot {
-    private func configureEventServices() {
+fileprivate extension SlackBot {
+    func configureEventServices() {
         let services = self.services.flatMap { $0 as? SlackRTMEventService }
         
         for service in services {
@@ -251,7 +258,7 @@ extension SlackBot {
         }
     }
     
-    private func notifyConnected() {
+    func notifyConnected() {
         let services = self.services.flatMap { $0 as? SlackConnectionService }
         
         let (users, channels, groups, ims, _) = self.currentSlackModelData()
@@ -274,14 +281,14 @@ extension SlackBot {
             self.notifyError(error)
         }
     }
-    private func notifyDisconnected(_ error: Error?) {
+    func notifyDisconnected(_ error: Error?) {
         let services = self.services.flatMap { $0 as? SlackDisconnectionService }
         
         for service in services {
             service.disconnected(slackBot: self, error: error)
         }
     }
-    private func notifyError(_ error: Error) {
+    func notifyError(_ error: Error) {
         print("ERROR: \(error)")
         guard self.state.state.ready else { return }
         
@@ -291,7 +298,7 @@ extension SlackBot {
             service.error(slackBot: self, error: error)
         }
     }
-    private func notifySlashCommand(_ command: SlashCommand) {
+    func notifySlashCommand(_ command: SlashCommand) {
         guard self.state.state.ready else { return }
         
         do {

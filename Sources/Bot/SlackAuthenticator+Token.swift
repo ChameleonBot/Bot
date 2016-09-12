@@ -20,7 +20,7 @@ public struct TokenAuthentication: SlackAuthenticator {
     public static var configItems: [ConfigItem.Type] {
         return [Token.self]
     }
-    public func authenticate(success: (token: String) -> Void, failure: (error: Error) -> Void) {
-        success(token: self.token)
+    public func authenticate(success: @escaping (String) -> Void, failure: @escaping (Error) -> Void) {
+        success(self.token)
     }
 }

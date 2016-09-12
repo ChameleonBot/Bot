@@ -8,7 +8,7 @@ public protocol SlackAuthenticator {
      - parameter success:   This closure fires with the token needed for the `SlackBot` to authenticate
      - parameter failure:   This closure fires with the reason the authentication attempt failed
      */
-    func authenticate(success: (token: String) -> Void, failure: (error: Error) -> Void)
+    func authenticate(success: @escaping (String) -> Void, failure: @escaping (Error) -> Void)
     
     static var configItems: [ConfigItem.Type] { get }
 }
