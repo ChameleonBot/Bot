@@ -30,16 +30,16 @@ private enum Endpoint: String {
 /// Handles oauth authentication
 public final class OAuthAuthentication: SlackAuthenticator {
     //MARK: - Private Properties
-    private let clientId: String
-    private let clientSecret: String
-    private let server: HTTPServer
-    private let http: HTTP
+    fileprivate let clientId: String
+    fileprivate let clientSecret: String
+    fileprivate let server: HTTPServer
+    fileprivate let http: HTTP
     
     //MARK: - Private Mutable Properties
-    private var token: String?
-    private var state = ""
-    private var success: ((token: String) -> Void)?
-    private var failure: ((error: Error) -> Void)?
+    fileprivate var token: String?
+    fileprivate var state = ""
+    fileprivate var success: ((String) -> Void)?
+    fileprivate var failure: ((Error) -> Void)?
     
     //MARK: - Lifecycle
     public init(clientId: String, clientSecret: String, server: HTTPServer, http: HTTP) {
@@ -60,20 +60,20 @@ public final class OAuthAuthentication: SlackAuthenticator {
     public static var configItems: [ConfigItem.Type] {
         return [OAuthClientID.self, OAuthClientSecret.self]
     }
-    public func authenticate(success: (token: String) -> Void, failure: (error: Error) -> Void) {
+    public func authenticate(success: @escaping (String) -> Void, failure: @escaping (Error) -> Void) {
         if let token = self.token {
-            success(token: token)
+            success(token)
             return
         }
         
         self.state = "\(Int.random(min: 1, max: 999999))"
         self.success = { [weak self] token in
             self?.reset()
-            success(token: token)
+            success(token)
         }
         self.failure = { [weak self] error in
             self?.reset()
-            failure(error: error)
+            failure(error)
         }
         
         print("Ready to authenticate: Please visit /login")
@@ -88,8 +88,8 @@ public final class OAuthAuthentication: SlackAuthenticator {
 }
 
 //MARK: - Server
-extension OAuthAuthentication {
-    private func configureServer() {
+fileprivate extension OAuthAuthentication {
+    func configureServer() {
         self.server.respond(
             to: .get, at: [Endpoint.login.rawValue],
             with: self, OAuthAuthentication.handleLogin
@@ -100,11 +100,11 @@ extension OAuthAuthentication {
         )
     }
     
-    private func handleLogin(url: URL, headers: [String: String], data: [String: Any]?) throws -> HTTPServerResponse? {
+    func handleLogin(url: URL, headers: [String: String], data: [String: Any]?) throws -> HTTPServerResponse? {
         guard !self.state.isEmpty else { return nil }
         return try self.oAuthAuthorizeURL()
     }
-    private func handleOAuth(url: URL, headers: [String: String], data: [String: Any]?) throws -> HTTPServerResponse? {
+    func handleOAuth(url: URL, headers: [String: String], data: [String: Any]?) throws -> HTTPServerResponse? {
         guard
             let data = url.query?.makeQueryParameters(),
             let state = data["state"],
@@ -122,10 +122,10 @@ extension OAuthAuthentication {
                 
                 let token: String = try json.value(at: ["bot", "bot_access_token"])
                 self.token = token
-                self.success?(token: token)
+                self.success?(token)
             },
             catch: { error in
-                self.failure?(error: error)
+                self.failure?(error)
             }
         )
         
@@ -134,8 +134,8 @@ extension OAuthAuthentication {
 }
 
 //MARK: - URLs
-extension OAuthAuthentication {
-    private func oAuthAuthorizeURL() throws -> URL {
+fileprivate extension OAuthAuthentication {
+    func oAuthAuthorizeURL() throws -> URL {
         var components = URLComponents(string: "https://slack.com/oauth/authorize")
         components?.queryItems = [
             URLQueryItem(name: "client_id", value: self.clientId),
@@ -146,7 +146,7 @@ extension OAuthAuthentication {
         guard let url = components?.url else { throw OAuthAuthenticationError.invalidURL }
         return url
     }
-    private func oAuthAccessURL(code: String) throws -> URL {
+    func oAuthAccessURL(code: String) throws -> URL {
         var components = URLComponents(string: "https://slack.com/api/oauth.access")
         components?.queryItems = [
             URLQueryItem(name: "client_id", value: self.clientId),
