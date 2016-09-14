@@ -67,15 +67,28 @@ public protocol SlackRTMEventService: SlackService {
 public protocol SlackSlashCommandService: SlackService {
     /**
      The commands supported by this `SlackSlashCommandService` instance
-    */
+     */
     var slashCommands: [String] { get }
     
     /**
      Called when one of the registered slash commands is triggered
      
      - parameter slackBot:      The `SlackBot` instance
-     - parameter slashCommand:  The `SlashCommand` with the command details
      - parameter webApi:        The current `WebAPI` that can be used to interact with Slack
+     - parameter slashCommand:  The `SlashCommand` with the command details
      */
-    func slashCommand(slackBot: SlackBot, command: SlashCommand, webApi: WebAPI) throws
+    func slashCommand(slackBot: SlackBot, webApi: WebAPI, command: SlashCommand) throws
 }
+
+/// An abstraction that represents a interactive button handler
+public protocol SlackInteractiveButtonService: SlackService {
+    /**
+     Called when an interactive button response is received
+     
+     - parameter slackBot:      The `SlackBot` instance
+     - parameter webApi:        The current `WebAPI` that can be used to interact with Slack
+     - parameter response:      The `InteractiveButtonResponse` with the response details
+     */
+    func interactiveButton(slackBot: SlackBot, webApi: WebAPI, response: InteractiveButtonResponse) throws
+}
+

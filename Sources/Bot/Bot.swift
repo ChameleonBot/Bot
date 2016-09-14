@@ -208,20 +208,22 @@ fileprivate extension SlackBot {
     enum Endpoint: String {
         case status
         case slashCommand
-//        case interactiveButtons
+        case interactiveButton
         
-        static var all: [Endpoint] { return [.status, .slashCommand] } //, .interactiveButtons] }
+        static var all: [Endpoint] { return [.status, .slashCommand, .interactiveButton] }
         
         var method: HTTPRequestMethod {
             switch self {
             case .status: return .get
             case .slashCommand: return .post
+            case .interactiveButton: return .post
             }
         }
         var handler: (SlackBot) -> RouteHandler {
             switch self {
             case .status: return SlackBot.statusHandler
             case .slashCommand: return SlackBot.slashCommandHandler
+            case .interactiveButton: return SlackBot.interactiveButtonHandler
             }
         }
     }
@@ -243,6 +245,20 @@ fileprivate extension SlackBot {
         let builder = SlackModelBuilder.make(models: self.currentSlackModelData())
         let slashCommand = try SlashCommand.makeModel(with: builder(json))
         self.notifySlashCommand(slashCommand)
+        
+        return nil
+    }
+    func interactiveButtonHandler(url: URL, headers: [String: String], json: [String: Any]?) throws -> HTTPServerResponse? {
+        guard
+            self.state.state.ready,
+            let json = json,
+            let payload = json["payload"] as? String
+            else { return nil }
+        
+        let builder = SlackModelBuilder.make(models: self.currentSlackModelData())
+        let packet = payload.makeDictionary()
+        let response = try InteractiveButtonResponse.makeModel(with: builder(packet))
+        self.notifyInteractiveButton(response)
         
         return nil
     }
@@ -313,8 +329,33 @@ fileprivate extension SlackBot {
                     .isEmpty
                 
                 if (!noMatch) {
-                    try service.slashCommand(slackBot: self, command: command, webApi: self.webAPI)
+                    try service.slashCommand(
+                        slackBot: self,
+                        webApi: self.webAPI,
+                        command: command
+                    )
                 }
+            }
+            
+        } catch let error {
+            self.notifyError(error)
+        }
+    }
+    func notifyInteractiveButton(_ response: InteractiveButtonResponse) {
+        guard self.state.state.ready else { return }
+        
+        do {
+            let verificationToken: String = try self.config.value(for: VerificationToken.self)
+            guard verificationToken == response.token else { return }
+            
+            let services = self.services.flatMap { $0 as? SlackInteractiveButtonService }
+            
+            for service in services {
+                try service.interactiveButton(
+                    slackBot: self,
+                    webApi: self.webAPI,
+                    response: response
+                )
             }
             
         } catch let error {
