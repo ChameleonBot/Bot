@@ -2,6 +2,9 @@ import Config
 
 /// Abstraction representing a means for the `SlackBot` to authenticate.
 public protocol SlackAuthenticator {
+    /// Config items required by this `SlackAuthenticator`
+    static var configItems: [ConfigItem.Type] { get }
+    
     /**
      Authenticate the `SlackBot`
      
@@ -10,5 +13,9 @@ public protocol SlackAuthenticator {
      */
     func authenticate(success: @escaping (String) -> Void, failure: @escaping (Error) -> Void)
     
-    static var configItems: [ConfigItem.Type] { get }
+    
+    /**
+     The `SlackBot` was disconnected, this allows any cleanup to be performed
+     */
+    func disconnected()
 }

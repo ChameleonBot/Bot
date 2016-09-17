@@ -34,26 +34,31 @@ public final class OAuthAuthentication: SlackAuthenticator {
     fileprivate let clientSecret: String
     fileprivate let server: HTTPServer
     fileprivate let http: HTTP
+    fileprivate let storage: Storage
     
     //MARK: - Private Mutable Properties
-    fileprivate var token: String?
+    fileprivate var token: String? {
+        get { return self.storage.get(.in("oauth"), key: "token") }
+        set { _ = try? self.storage.set(.in("oauth"), key: "token", value: newValue) }
+    }
     fileprivate var state = ""
     fileprivate var success: ((String) -> Void)?
     fileprivate var failure: ((Error) -> Void)?
     
     //MARK: - Lifecycle
-    public init(clientId: String, clientSecret: String, server: HTTPServer, http: HTTP) {
+    public init(clientId: String, clientSecret: String, server: HTTPServer, http: HTTP, storage: Storage) {
         self.clientId = clientId
         self.clientSecret = clientSecret
         self.server = server
         self.http = http
+        self.storage = storage
         
         self.configureServer()
     }
-    public convenience init(config: Config, server: HTTPServer, http: HTTP) throws {
+    public convenience init(config: Config, server: HTTPServer, http: HTTP, storage: Storage) throws {
         let clientId: String = try config.value(for: OAuthClientID.self)
         let clientSecret: String = try config.value(for: OAuthClientSecret.self)
-        self.init(clientId: clientId, clientSecret: clientSecret, server: server, http: http)
+        self.init(clientId: clientId, clientSecret: clientSecret, server: server, http: http, storage: storage)
     }
     
     //MARK: - Public
@@ -64,6 +69,7 @@ public final class OAuthAuthentication: SlackAuthenticator {
         if let token = self.token {
             success(token)
             return
+            
         }
         
         self.state = "\(Int.random(min: 1, max: 999999))"
@@ -77,6 +83,9 @@ public final class OAuthAuthentication: SlackAuthenticator {
         }
         
         print("Ready to authenticate: Please visit /login")
+    }
+    public func disconnected() {
+        self.token = nil
     }
     
     //MARK: - State
