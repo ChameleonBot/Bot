@@ -95,3 +95,11 @@ extension RedisStorage: ConfigBuildable {
         return try RedisStorage(url: try config.value(for: StorageURL.self))
     }
 }
+
+#if !os(Linux)
+extension PlistStorage: ConfigBuildable {
+    public static func make(config: Config) throws -> PlistStorage {
+        return PlistStorage()
+    }
+}
+#endif
