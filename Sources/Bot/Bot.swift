@@ -13,19 +13,19 @@ public class SlackBot {
     fileprivate let server: HTTPServer
     fileprivate let state: BotStateMachine
     fileprivate let authenticator: SlackAuthenticator
-    fileprivate var services: [SlackService] = [] //TODO: include default service that updates the bots Internal Data
+    fileprivate var services: [SlackService] = [DataService()]
     
     //MARK: - Internal Dependencies
     internal let webAPI: WebAPI
     internal let rtmAPI: RTMAPI
     
     //MARK: - Internal Data
-    internal fileprivate(set) var botUser: BotUser?
-    internal fileprivate(set) var team: Team?
-    internal fileprivate(set) var users: [User] = []
-    internal fileprivate(set) var channels: [Channel] = []
-    internal fileprivate(set) var groups: [Group] = []
-    internal fileprivate(set) var ims: [IM] = []
+    internal var botUser: BotUser?
+    internal var team: Team?
+    internal var users: [User] = []
+    internal var channels: [Channel] = []
+    internal var groups: [Group] = []
+    internal var ims: [IM] = []
     //internal fileprivate(set) var mpims: [MPIM] = []
     
     //MARK: - Public Properties
