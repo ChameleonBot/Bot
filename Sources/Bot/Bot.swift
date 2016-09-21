@@ -325,7 +325,7 @@ fileprivate extension SlackBot {
             for service in services {
                 let noMatch = service
                     .slashCommands
-                    .filter { $0.withPrefix("/") == command.command && verificationToken == command.token }
+                    .filter { $0.with(prefix: "/") == command.command && verificationToken == command.token }
                     .isEmpty
                 
                 if (!noMatch) {
