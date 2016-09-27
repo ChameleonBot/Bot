@@ -127,7 +127,8 @@ fileprivate extension OAuthAuthentication {
             try: {
                 let accessUrl = try self.oAuthAccessURL(code: code)
                 let request = HTTPRequest(method: .get, url: accessUrl)
-                let (_, json) = try self.http.perform(with: request)
+                let (_, data) = try self.http.perform(with: request)
+                let json = (data as? [String: Any]) ?? [:]
                 
                 let token: String = try json.value(at: ["bot", "bot_access_token"])
                 self.token = token

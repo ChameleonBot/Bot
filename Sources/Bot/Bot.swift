@@ -101,17 +101,17 @@ public class SlackBot {
 
 //MARK: - State Transitions
 fileprivate extension SlackBot {
-    func botStateTransition(oldState: BotState?, newState: BotState) {
-        print("STATE: \(newState)")
+    func botStateTransition(change: StateChange<BotState>) {
+        print("STATE: \(change)")
         
-        switch newState {
+        switch change.new {
         case .connecting: //(attempt: <#T##Int#>, maximumAttempts: <#T##Int#>):
             self.obtainTokenForWebAPI {
                 self.connectToRTM()
             }
             
         case .connected: //(state: <#T##BotState.ConnectedState#>, maximumReconnectionAttempts: <#T##Int#>):
-            guard newState.ready else { return }
+            guard change.new.ready else { return }
             self.notifyConnected()
             
         case .disconnected(let error):
