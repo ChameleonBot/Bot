@@ -3,23 +3,6 @@ import Services
 import Common
 import Foundation
 
-//MARK: - Error
-/// Describes the range of possible errors that can occur when authenticating using OAuth
-public enum OAuthAuthenticationError: Error, CustomStringConvertible {
-    /// A derived url was invalid
-    case invalidURL
-    
-    /// An oAuth error
-    case oauthError(reason: String)
-    
-    public var description: String {
-        switch self {
-        case .invalidURL: return "Invalid URL"
-        case .oauthError(let reason): return "OAuth Failed: \(reason)"
-        }
-    }
-}
-
 //MARK: - Endpoints
 private enum Endpoint: String {
     case login
@@ -32,23 +15,21 @@ public final class OAuthAuthentication: SlackAuthenticator {
     //MARK: - Private Properties
     fileprivate let clientId: String
     fileprivate let clientSecret: String
+    fileprivate let scopes: [String]?
     fileprivate let server: HTTPServer
     fileprivate let http: HTTP
     fileprivate let storage: Storage
     
     //MARK: - Private Mutable Properties
-    fileprivate var token: String? {
-        get { return self.storage.get(.in("oauth"), key: "token") }
-        set { _ = try? self.storage.set(.in("oauth"), key: "token", value: newValue) }
-    }
     fileprivate var state = ""
-    fileprivate var success: ((String) -> Void)?
+    fileprivate var success: ((SlackAuthentication) -> Void)?
     fileprivate var failure: ((Error) -> Void)?
     
     //MARK: - Lifecycle
-    public init(clientId: String, clientSecret: String, server: HTTPServer, http: HTTP, storage: Storage) {
+    public init(clientId: String, clientSecret: String, scopes: [String]?, server: HTTPServer, http: HTTP, storage: Storage) {
         self.clientId = clientId
         self.clientSecret = clientSecret
+        self.scopes = scopes
         self.server = server
         self.http = http
         self.storage = storage
@@ -58,24 +39,32 @@ public final class OAuthAuthentication: SlackAuthenticator {
     public convenience init(config: Config, server: HTTPServer, http: HTTP, storage: Storage) throws {
         let clientId: String = try config.value(for: OAuthClientID.self)
         let clientSecret: String = try config.value(for: OAuthClientSecret.self)
-        self.init(clientId: clientId, clientSecret: clientSecret, server: server, http: http, storage: storage)
+        let scopes: [String]? = try? config.value(for: Scopes.self)
+        
+        self.init(
+            clientId: clientId,
+            clientSecret: clientSecret,
+            scopes: scopes,
+            server: server,
+            http: http,
+            storage: storage
+        )
     }
     
     //MARK: - Public
     public static var configItems: [ConfigItem.Type] {
-        return [OAuthClientID.self, OAuthClientSecret.self]
+        return [OAuthClientID.self, OAuthClientSecret.self, Scopes.self]
     }
-    public func authenticate(success: @escaping (String) -> Void, failure: @escaping (Error) -> Void) {
-        if let token = self.token {
-            success(token)
+    public func authenticate(success: @escaping (SlackAuthentication) -> Void, failure: @escaping (Error) -> Void) {
+        if let authentication = self.authentication() {
+            success(authentication)
             return
-            
         }
         
         self.state = "\(Int.random(min: 1, max: 999999))"
-        self.success = { [weak self] token in
+        self.success = { [weak self] authentication in
             self?.reset()
-            success(token)
+            success(authentication)
         }
         self.failure = { [weak self] error in
             self?.reset()
@@ -84,8 +73,8 @@ public final class OAuthAuthentication: SlackAuthenticator {
         
         print("Ready to authenticate: Please visit /login")
     }
-    public func disconnected() {
-        self.token = nil
+    public func disconnected() throws {
+        try self.clearAuthentication()
     }
     
     //MARK: - State
@@ -93,6 +82,39 @@ public final class OAuthAuthentication: SlackAuthenticator {
         self.state = ""
         self.success = nil
         self.failure = nil
+    }
+}
+
+fileprivate extension OAuthAuthentication {
+    func authentication() -> OAuthSlackAuthentication? {
+        guard
+            let values: [String] = self.storage.get(.in("oauth"), key: "token"),
+            values.count == 2,
+            let bot_access_token = values.first,
+            let access_token = values.last
+            else { return nil }
+        
+        return OAuthSlackAuthentication(
+            bot_access_token: bot_access_token,
+            access_token: access_token
+        )
+    }
+    
+    func updateAuthentication(json: [String: Any]) throws -> OAuthSlackAuthentication  {
+        let bot_access_token: String = try json.value(at: ["bot", "bot_access_token"])
+        let access_token: String = try json.value(at: ["access_token"])
+        
+        try self.storage.set(.in("oauth"), key: "token", value: [bot_access_token, access_token])
+        
+        return OAuthSlackAuthentication(
+            bot_access_token: bot_access_token,
+            access_token: access_token
+        )
+    }
+    
+    func clearAuthentication() throws {
+        let value: [String]? = nil
+        try self.storage.set(.in("oauth"), key: "token", value: value)
     }
 }
 
@@ -130,9 +152,8 @@ fileprivate extension OAuthAuthentication {
                 let (_, data) = try self.http.perform(with: request)
                 let json = (data as? [String: Any]) ?? [:]
                 
-                let token: String = try json.value(at: ["bot", "bot_access_token"])
-                self.token = token
-                self.success?(token)
+                let authentication = try self.updateAuthentication(json: json)
+                self.success?(authentication)
             },
             catch: { error in
                 self.failure?(error)
@@ -147,9 +168,12 @@ fileprivate extension OAuthAuthentication {
 fileprivate extension OAuthAuthentication {
     func oAuthAuthorizeURL() throws -> URL {
         var components = URLComponents(string: "https://slack.com/oauth/authorize")
+        
+        let scopes = ["bot"] + (self.scopes ?? [])
+        
         components?.queryItems = [
             URLQueryItem(name: "client_id", value: self.clientId),
-            URLQueryItem(name: "scope", value: "bot"),
+            URLQueryItem(name: "scope", value: scopes.joined(separator: " ")),
             URLQueryItem(name: "state", value: self.state),
         ]
         

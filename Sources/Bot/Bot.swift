@@ -112,6 +112,7 @@ fileprivate extension SlackBot {
             
         case .connected: //(state: <#T##BotState.ConnectedState#>, maximumReconnectionAttempts: <#T##Int#>):
             guard change.new.ready else { return }
+            print("ME: \(self.botUser)")
             self.notifyConnected()
             
         case .disconnected(let error):
@@ -146,9 +147,9 @@ extension SlackBot {
 fileprivate extension SlackBot {
     func obtainTokenForWebAPI(complete: @escaping () -> Void) {
         self.authenticator.authenticate(
-            success: { [weak self] token in
-                self?.webAPI.token = token
-                print("TOKEN: \(token)")
+            success: { [weak self] authentication in
+                self?.webAPI.authentication = authentication
+                print("AUTHENTICATION: \(authentication)")
                 complete()
             },
             failure: { [weak self] error in

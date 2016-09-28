@@ -1,27 +1,35 @@
 import Config
 import Common
 
-import Foundation
+public struct TokenSlackAuthentication: SlackAuthentication {
+    fileprivate let token: String
+    
+    public func token<T: WebAPIMethod>(for method: T) throws -> String {
+        //token based authentication automatically unlocks all WebAPI methods
+        return token
+    }
+}
 
 /// Handles direct token authentication
 public struct TokenAuthentication: SlackAuthenticator {
     //MARK: - Private
-    private let token: String
+    private let authentication: TokenSlackAuthentication
     
     //MARK: - Lifecycle
     public init(token: String) {
-        self.token = token
+        self.authentication = TokenSlackAuthentication(token: token)
     }
     public init(config: Config) throws {
-        self.token = try config.value(for: Token.self)
+        let token: String = try config.value(for: Token.self)
+        self.init(token: token)
     }
     
     //MARK: - Public
     public static var configItems: [ConfigItem.Type] {
         return [Token.self]
     }
-    public func authenticate(success: @escaping (String) -> Void, failure: @escaping (Error) -> Void) {
-        success(self.token)
+    public func authenticate(success: @escaping (SlackAuthentication) -> Void, failure: @escaping (Error) -> Void) {
+        success(self.authentication)
     }
-    public func disconnected() { }
+    public func disconnected() throws { }
 }

@@ -1,4 +1,5 @@
 import Config
+import WebAPI
 
 /// Abstraction representing a means for the `SlackBot` to authenticate.
 public protocol SlackAuthenticator {
@@ -8,14 +9,13 @@ public protocol SlackAuthenticator {
     /**
      Authenticate the `SlackBot`
      
-     - parameter success:   This closure fires with the token needed for the `SlackBot` to authenticate
+     - parameter success:   This closure fires with the `SlackAuthentication` needed for the `SlackBot` to authenticate
      - parameter failure:   This closure fires with the reason the authentication attempt failed
      */
-    func authenticate(success: @escaping (String) -> Void, failure: @escaping (Error) -> Void)
-    
+    func authenticate(success: @escaping (SlackAuthentication) -> Void, failure: @escaping (Error) -> Void)
     
     /**
      The `SlackBot` was disconnected, this allows any cleanup to be performed
      */
-    func disconnected()
+    func disconnected() throws
 }
