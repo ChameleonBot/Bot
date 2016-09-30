@@ -96,6 +96,8 @@ public class SlackBot {
             default: return false
             }
         }
+        
+        self.authenticator.disconnected()
     }
 }
 

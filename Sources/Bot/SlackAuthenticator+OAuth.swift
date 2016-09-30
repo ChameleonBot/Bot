@@ -73,8 +73,8 @@ public final class OAuthAuthentication: SlackAuthenticator {
         
         print("Ready to authenticate: Please visit /login")
     }
-    public func disconnected() throws {
-        try self.clearAuthentication()
+    public func disconnected() {
+        try! self.clearAuthentication()
     }
     
     //MARK: - State

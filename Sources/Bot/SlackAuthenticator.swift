@@ -17,5 +17,5 @@ public protocol SlackAuthenticator {
     /**
      The `SlackBot` was disconnected, this allows any cleanup to be performed
      */
-    func disconnected() throws
+    func disconnected()
 }

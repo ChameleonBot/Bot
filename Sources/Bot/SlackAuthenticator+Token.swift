@@ -31,5 +31,5 @@ public struct TokenAuthentication: SlackAuthenticator {
     public func authenticate(success: @escaping (SlackAuthentication) -> Void, failure: @escaping (Error) -> Void) {
         success(self.authentication)
     }
-    public func disconnected() throws { }
+    public func disconnected() { }
 }
