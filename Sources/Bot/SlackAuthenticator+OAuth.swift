@@ -178,6 +178,7 @@ fileprivate extension OAuthAuthentication {
         ]
         
         guard let url = components?.url else { throw OAuthAuthenticationError.invalidURL }
+        print("OAUTH: \(url)")
         return url
     }
     func oAuthAccessURL(code: String) throws -> URL {
