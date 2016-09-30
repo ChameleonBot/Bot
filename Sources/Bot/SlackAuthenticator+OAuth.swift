@@ -15,7 +15,7 @@ public final class OAuthAuthentication: SlackAuthenticator {
     //MARK: - Private Properties
     fileprivate let clientId: String
     fileprivate let clientSecret: String
-    fileprivate let scopes: [String]?
+    fileprivate let scopes: Set<String>
     fileprivate let server: HTTPServer
     fileprivate let http: HTTP
     fileprivate let storage: Storage
@@ -26,10 +26,10 @@ public final class OAuthAuthentication: SlackAuthenticator {
     fileprivate var failure: ((Error) -> Void)?
     
     //MARK: - Lifecycle
-    public init(clientId: String, clientSecret: String, scopes: [String]?, server: HTTPServer, http: HTTP, storage: Storage) {
+    public init(clientId: String, clientSecret: String, scopes: [String], server: HTTPServer, http: HTTP, storage: Storage) {
         self.clientId = clientId
         self.clientSecret = clientSecret
-        self.scopes = scopes
+        self.scopes = Set(["bot"] + scopes)
         self.server = server
         self.http = http
         self.storage = storage
@@ -39,7 +39,7 @@ public final class OAuthAuthentication: SlackAuthenticator {
     public convenience init(config: Config, server: HTTPServer, http: HTTP, storage: Storage) throws {
         let clientId: String = try config.value(for: OAuthClientID.self)
         let clientSecret: String = try config.value(for: OAuthClientSecret.self)
-        let scopes: [String]? = try? config.value(for: Scopes.self)
+        let scopes: [String] = try config.value(for: Scopes.self)
         
         self.init(
             clientId: clientId,
@@ -169,16 +169,13 @@ fileprivate extension OAuthAuthentication {
     func oAuthAuthorizeURL() throws -> URL {
         var components = URLComponents(string: "https://slack.com/oauth/authorize")
         
-        let scopes = ["bot"] + (self.scopes ?? [])
-        
         components?.queryItems = [
             URLQueryItem(name: "client_id", value: self.clientId),
-            URLQueryItem(name: "scope", value: scopes.joined(separator: " ")),
+            URLQueryItem(name: "scope", value: self.scopes.joined(separator: " ")),
             URLQueryItem(name: "state", value: self.state),
         ]
         
         guard let url = components?.url else { throw OAuthAuthenticationError.invalidURL }
-        print("OAUTH: \(url)")
         return url
     }
     func oAuthAccessURL(code: String) throws -> URL {
