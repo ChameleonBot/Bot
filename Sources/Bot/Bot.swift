@@ -232,6 +232,10 @@ fileprivate extension SlackBot {
     }
     
     func configureServer() {
+        self.server.onError = { [weak self] error in
+            self?.notifyError(error)
+        }
+        
         for endpoint in Endpoint.all {
             self.server.respond(
                 to: endpoint.method, at: [endpoint.rawValue],

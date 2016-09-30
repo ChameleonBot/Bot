@@ -171,7 +171,7 @@ fileprivate extension OAuthAuthentication {
         
         components?.queryItems = [
             URLQueryItem(name: "client_id", value: self.clientId),
-            URLQueryItem(name: "scope", value: self.scopes.joined(separator: " ")),
+            URLQueryItem(name: "scope", value: self.scopes.joined(separator: "%20")),
             URLQueryItem(name: "state", value: self.state),
         ]
         
