@@ -54,11 +54,11 @@ public protocol SlackErrorService: SlackService {
 /// An abstraction that represents any `RTMAPI` event
 public protocol SlackRTMEventService: SlackService {
     /**
-     Called for every supported `RTMAPI` event
+     Called once during bot creation, allows service to subscribe to the `RTMAPIEvent`s it needs
      
      - parameter slackBot: The `SlackBot` instance
      - parameter webApi:   The current `WebAPI` that can be used to interact with Slack
-     - parameter event:    The `SlackRTMEventDispatcher` that can be used to react to `RTMAPIEvent`s
+     - parameter event:    The `SlackRTMEventDispatcher` that can be used to subscribe to `RTMAPIEvent`s
      */
     func configureEvents(slackBot: SlackBot, webApi: WebAPI, dispatcher: SlackRTMEventDispatcher)
 }
