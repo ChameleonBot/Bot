@@ -169,9 +169,16 @@ fileprivate extension OAuthAuthentication {
     func oAuthAuthorizeURL() throws -> URL {
         var components = URLComponents(string: "https://slack.com/oauth/authorize")
         
+        //because of course they are different...
+        #if os(Linux)
+        let separator = "%20"
+        #else
+        let separator = " "
+        #endif
+        
         components?.queryItems = [
             URLQueryItem(name: "client_id", value: self.clientId),
-            URLQueryItem(name: "scope", value: self.scopes.joined(separator: "%20")),
+            URLQueryItem(name: "scope", value: self.scopes.joined(separator: separator)),
             URLQueryItem(name: "state", value: self.state),
         ]
         
