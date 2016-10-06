@@ -3,7 +3,18 @@ import RTMAPI
 import WebAPI
 
 /// An empty abstraction used to provide a 'base' for each type of supported service
-public protocol SlackService { }
+public protocol SlackService {
+    /**
+     Called once during bot creation, allows service to configure itself with the provided resources
+     
+     - parameter slackBot: The `SlackBot` instance
+     - parameter webApi:   The current `WebAPI` that can be used to interact with Slack
+     */
+    func configure(slackBot: SlackBot, webApi: WebAPI)
+}
+extension SlackService {
+    public func configure(slackBot: SlackBot, webApi: WebAPI) { }
+}
 
 /// An abstraction that represents the 'connection' event
 public protocol SlackConnectionService: SlackService {

@@ -74,6 +74,7 @@ public class SlackBot {
         
         self.bindToRTM()
         self.configureServer()
+        self.configureServices()
         self.configureEventServices()
     }
     
@@ -273,6 +274,12 @@ fileprivate extension SlackBot {
 
 //MARK: - Event Propogation
 fileprivate extension SlackBot {
+    func configureServices() {
+        for service in services {
+            service.configure(slackBot: self, webApi: self.webAPI)
+        }
+        
+    }
     func configureEventServices() {
         let services = self.services.flatMap { $0 as? SlackRTMEventService }
         
