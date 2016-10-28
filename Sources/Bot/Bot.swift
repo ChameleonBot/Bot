@@ -106,6 +106,7 @@ public class SlackBot {
 fileprivate extension SlackBot {
     func botStateTransition(change: StateChange<BotState>) {
         print("STATE: \(change)")
+        self.rtmAPI.sendEvents = false
         
         switch change.new {
         case .connecting: //(attempt: <#T##Int#>, maximumAttempts: <#T##Int#>):
@@ -117,6 +118,7 @@ fileprivate extension SlackBot {
             guard change.new.ready else { return }
             print("ME: \(self.botUser)")
             self.notifyConnected()
+            self.rtmAPI.sendEvents = true
             
         case .disconnected(let error):
             self.rtmAPI.disconnect()
