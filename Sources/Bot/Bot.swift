@@ -6,7 +6,7 @@
 @_exported import Common
 import Foundation
 
-/// An extensible Slack bot user than can provide custom functionality
+/// An extensible Slack bot user that can provide custom functionality
 public class SlackBot {
     //MARK: - Private Properties
     fileprivate let config: Config
@@ -121,7 +121,7 @@ fileprivate extension SlackBot {
             self.rtmAPI.sendEvents = true
             
         case .disconnected(let error):
-            self.rtmAPI.disconnect()
+            self.rtmAPI.disconnect(error: error)
             self.notifyDisconnected(error)
         }
     }
@@ -167,22 +167,20 @@ fileprivate extension SlackBot {
 //MARK: - RTMAPI
 fileprivate extension SlackBot {
     func bindToRTM() {
-        self.rtmAPI.onDisconnected = { [weak self] error in
-            self?.state.transition(withEvent: .disconnect(reconnect: true, error: error))
+        self.rtmAPI.onDisconnected = { [unowned self] error in
+            self.state.transition(withEvent: .disconnect(reconnect: true, error: error))
         }
-        self.rtmAPI.onError = { [weak self] error in
-            self?.notifyError(error)
+        self.rtmAPI.onError = { [unowned self] error in
+            self.notifyError(error)
         }
-        self.rtmAPI.onEvent(hello.self) { [weak self] in
-            self?.state.transition(withEvent: .connectionState(state: .Hello))
+        self.rtmAPI.onEvent(hello.self) { [unowned self] in
+            self.state.transition(withEvent: .connectionState(state: .Hello))
         }
     }
     func connectToRTM() {
         do {
             let options: [RTMStartOption] = try self.config.value(for: RTMStartOptions.self)
-            let rtmStart = RTMStart(options: options) { [weak self] serializedData in
-                guard let `self` = self else { return }
-                
+            let rtmStart = RTMStart(options: options) { [unowned self] serializedData in
                 do {
                     let (botUser, team, users, channels, groups, ims) = try serializedData()
                     
@@ -235,8 +233,8 @@ fileprivate extension SlackBot {
     }
     
     func configureServer() {
-        self.server.onError = { [weak self] error in
-            self?.notifyError(error)
+        self.server.onError = { [unowned self] error in
+            self.notifyError(error)
         }
         
         for endpoint in Endpoint.all {
