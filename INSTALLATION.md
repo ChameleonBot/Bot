@@ -2,21 +2,7 @@
 Please work through the following to get your bot up and running.
 
 ## Xcode 8
-You will first need Xcode 8, you can download it at [Apple Developer Downloads.](https://developer.apple.com/download/)
-After your downlod completes drag it into your `Applications` folder to install it.
-Finally you need to select Xcode 8 for your `Command Line Tools`, you can do this from Xcode 8
-preferences (`cmd` + `,`). Go to the `Locations` tab, under `Command Line Tools` choose `Xcode 8`
-
-## Swift 3
-You need Swift 3 installed, I recommend using [swiftenv](https://github.com/kylef/swiftenv).
-Once you have `swiftenv` installed run the following commands in a terminal window.
-
-```
-swiftenv install DEVELOPMENT-SNAPSHOT-2016-07-25-a
-swiftenv global DEVELOPMENT-SNAPSHOT-2016-07-25-a
-```
-
-This will install the snapshot and set it as the default installation of Swift 3.
+Ensure you have Xcode 8 installed, you can download it at [Apple Developer Downloads.](https://developer.apple.com/download/) or via the AppStore.
 
 ## Slack
 There are two ways to authenticate your bot with slack:
@@ -52,17 +38,17 @@ Start by cloning or downloading the [example bot](https://github.com/ChameleonBo
 ## Running locally on OSX
 * Open a terminal window and go to the directory containing `Package.swift`
 * Type `swift build`
-* For token based auth: Type `.build/debug/app --token="<your-bot-token>"`
-* For oauth based auth: Type `.build/debug/app --clientId="<your-clientid> --clientSecret="<your-client_secret>"`
+* For **token** based auth: Type `.build/debug/app --token="<your-bot-token>"`
+* For **oauth** based auth: Type `.build/debug/app --clientId="<your-clientid> --clientSecret="<your-client_secret>"`
 * Go into a default channel in your slack and say `hi @yourBot` - it should respond.
 
 ## Deploy to Heroku
 * Open a terminal window and go to the directory containing `Package.swift`
 * Using the [Heroku CLI](https://devcenter.heroku.com/articles/heroku-command) login and create a new app.
 * In the Heroku dashboard add config variables for authentication:
-    * For token based auth add a variable named `TOKEN` with your slack token
-    * For oauth based auth add a variables named `CLIENT_ID` and `CLIENT_SECRET` with your slack client id and secret
-* Set the buildpack `heroku buildpacks:set https://github.com/IanKeen/heroku-buildpack-swift`
+    * For **token** based auth add a variable named `TOKEN` with your slack token
+    * For **oauth** based auth add a variables named `CLIENT_ID` and `CLIENT_SECRET` with your slack client id and secret
+* Set the buildpack `heroku buildpacks:set https://github.com/ChameleonBot/heroku-buildpack`
 * Create a file called `Procfile` and add the text: `web: App --config:servers.default.port=$PORT`
 * Deploy to Heroku by typing:
 ```

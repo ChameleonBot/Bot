@@ -12,6 +12,7 @@ It consists of several frameworks, the core of which are:
 * **WebAPI**: Allows interaction with Slack's Web API.
 * **RTMAPI**: Allows interaction with Slack's Real-time messaging API.
 * **Bot**: Utilises each of the frameworks to provide an extensible Slack bot user.
+* **Sugar**: Provides a layer over all frameworks adding various helpers, wrappers and syntactic sugar to make developing features more declarative.
 
 ## Features
 * [x] **Extensible**: `SlackService`'s can be added to provide any behaviour you need.
