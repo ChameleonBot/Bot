@@ -12,18 +12,3 @@ public struct OAuthSlackAuthentication: SlackAuthentication {
         return self.access_token
     }
 }
-
-//fileprivate extension OAuthSlackAuthentication {
-//    var elevatedScopes: [WebAPIScope] {
-//        return [
-//            .channels_history,
-//            .channels_write,
-//            .chat_write_bot,
-//            .chat_write_user,
-//            .emoji_read,
-//            .groups_write,
-//            .groups_history,
-//            .pins_read,
-//        ]
-//    }
-//}
