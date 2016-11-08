@@ -48,7 +48,7 @@ Start by cloning or downloading the [example bot](https://github.com/ChameleonBo
 * In the Heroku dashboard add config variables for authentication:
     * For **token** based auth add a variable named `TOKEN` with your slack token
     * For **oauth** based auth add a variables named `CLIENT_ID` and `CLIENT_SECRET` with your slack client id and secret
-* Set the buildpack `heroku buildpacks:set https://github.com/ChameleonBot/heroku-buildpack`
+* Set the buildpack `heroku buildpacks:set https://github.com/IanKeen/heroku-buildpack-swift`
 * Create a file called `Procfile` and add the text: `web: App --config:servers.default.port=$PORT`
 * Deploy to Heroku by typing:
 ```
