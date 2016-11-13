@@ -15,6 +15,10 @@ public class SlackBot {
     fileprivate let authenticator: SlackAuthenticator
     fileprivate var services: [SlackService] = [DataService()]
     
+    //MARK: - Private Thread Operations
+    fileprivate var serverOperation: CancellableDispatchOperation?
+    fileprivate var rtmApiOperation: CancellableDispatchOperation?
+    
     //MARK: - Internal Dependencies
     internal let webAPI: WebAPI
     internal let rtmAPI: RTMAPI
@@ -81,24 +85,35 @@ public class SlackBot {
     //MARK: - Public Functions
     /// Start the bot
     public func start() {
-        self.server.start(mode: .newThread)
-        
-        do {
-            let maximumAttempts: Int = try self.config.value(for: ReconnectionAttempts.self)
-            self.state.transition(withEvent: .connect(maximumAttempts: maximumAttempts))
-            
-        } catch let error {
-            self.state.transition(withEvent: .disconnect(reconnect: true, error: error))
-        }
+        self.startServer()
+        self.startBot()
         
         keepAlive {
-            switch self.state.state {
-            case .disconnected: return true
-            default: return false
+            let state = (
+                self.state.lastTransition.old,
+                self.state.lastTransition.new
+            )
+            switch state {
+            case (.some, .disconnected): return false
+            default: return true
             }
         }
         
         self.authenticator.disconnected()
+        self.rtmApiOperation?.cancel()
+        self.serverOperation?.cancel()
+    }
+    
+    private func startBot() {
+        _ = inBackground(
+            try: {
+                let maximumAttempts: Int = try self.config.value(for: ReconnectionAttempts.self)
+                self.state.transition(withEvent: .connect(maximumAttempts: maximumAttempts))
+            },
+            catch: { error in
+                self.state.transition(withEvent: .disconnect(reconnect: true, error: error))
+            }
+        )
     }
 }
 
@@ -178,32 +193,36 @@ fileprivate extension SlackBot {
         }
     }
     func connectToRTM() {
-        do {
-            let options: [RTMStartOption] = try self.config.value(for: RTMStartOptions.self)
-            let rtmStart = RTMStart(options: options) { [unowned self] serializedData in
-                do {
-                    let (botUser, team, users, channels, groups, ims) = try serializedData()
-                    
-                    self.botUser = botUser
-                    self.team = team
-                    self.users = users
-                    self.channels = channels
-                    self.groups = groups
-                    self.ims = ims
-                    
-                    self.state.transition(withEvent: .connectionState(state: .Data))
-                    
-                } catch let error {
-                    self.state.transition(withEvent: .disconnect(reconnect: true, error: error))
+        self.rtmApiOperation?.cancel()
+        
+        self.rtmApiOperation = inBackground(
+            try: {
+                let options: [RTMStartOption] = try self.config.value(for: RTMStartOptions.self)
+                let rtmStart = RTMStart(options: options) { [unowned self] serializedData in
+                    do {
+                        let (botUser, team, users, channels, groups, ims) = try serializedData()
+                        
+                        self.botUser = botUser
+                        self.team = team
+                        self.users = users
+                        self.channels = channels
+                        self.groups = groups
+                        self.ims = ims
+                        
+                        self.state.transition(withEvent: .connectionState(state: .Data))
+                        
+                    } catch let error {
+                        self.state.transition(withEvent: .disconnect(reconnect: true, error: error))
+                    }
                 }
+                let url = try self.webAPI.execute(rtmStart)
+                let pingPongInterval: Double = try self.config.value(for: PingPongInterval.self)
+                try self.rtmAPI.connect(to: url, pingPongInterval: pingPongInterval)
+            },
+            catch: { error in
+                self.state.transition(withEvent: .disconnect(reconnect: true, error: error))
             }
-            let RTMURL = try self.webAPI.execute(rtmStart)
-            let pingPongInterval: Double = try self.config.value(for: PingPongInterval.self)
-            try self.rtmAPI.connect(to: RTMURL, pingPongInterval: pingPongInterval)
-            
-        } catch let error {
-            self.state.transition(withEvent: .disconnect(reconnect: true, error: error))
-        }
+        )
     }
 }
 
@@ -243,6 +262,10 @@ fileprivate extension SlackBot {
                 with: self, endpoint.handler
             )
         }
+    }
+    func startServer() {
+        self.serverOperation?.cancel()
+        self.serverOperation = inBackground(function: self.server.start)
     }
     func statusHandler(url: URL, headers: [String: String], json: [String: Any]?) throws -> HTTPServerResponse? {
         return nil //empty 200

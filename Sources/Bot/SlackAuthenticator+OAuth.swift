@@ -24,6 +24,7 @@ public final class OAuthAuthentication: SlackAuthenticator {
     fileprivate var state = ""
     fileprivate var success: ((SlackAuthentication) -> Void)?
     fileprivate var failure: ((Error) -> Void)?
+    fileprivate var oauthOperation: CancellableDispatchOperation?
     
     //MARK: - Lifecycle
     public init(clientId: String, clientSecret: String, scopes: [String], server: HTTPServer, http: HTTP, storage: Storage) {
@@ -56,6 +57,8 @@ public final class OAuthAuthentication: SlackAuthenticator {
         return [OAuthClientID.self, OAuthClientSecret.self, Scopes.self]
     }
     public func authenticate(success: @escaping (SlackAuthentication) -> Void, failure: @escaping (Error) -> Void) {
+        self.oauthOperation?.cancel()
+        
         if let authentication = self.authentication() {
             success(authentication)
             return
@@ -145,7 +148,7 @@ fileprivate extension OAuthAuthentication {
         
         if let error = data["error"] { throw OAuthAuthenticationError.oauthError(reason: error) }
         
-        _ = inBackground(
+        self.oauthOperation = inBackground(
             try: {
                 let accessUrl = try self.oAuthAccessURL(code: code)
                 let request = HTTPRequest(method: .get, url: accessUrl)
@@ -153,6 +156,7 @@ fileprivate extension OAuthAuthentication {
                 let json = (data as? [String: Any]) ?? [:]
                 
                 let authentication = try self.updateAuthentication(json: json)
+                
                 self.success?(authentication)
             },
             catch: { error in
